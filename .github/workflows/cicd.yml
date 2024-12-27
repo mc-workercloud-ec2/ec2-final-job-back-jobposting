@@ -45,7 +45,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: jinwoo-backend
+          ECR_REPOSITORY: ec2-team-backend
           IMAGE_TAG: ${{ github.sha }}
 
         run: |
@@ -54,22 +54,6 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:jobposting
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:        
-          task-definition: task-definition.json
-          container-name: jinwoo-back-jobposting
-          image: ${{ steps.build-image.outputs.image }}
-
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ec2team-241214-back-job-service
-          cluster: ec2team-241214-ecs-cluster
-          wait-for-service-stability: true
 
       - name: Post a message in a channel
         uses: slackapi/slack-github-action@v2.0.0
